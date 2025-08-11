@@ -16,9 +16,9 @@ protocols including Kademlia DHT, GossipSub, FloodSub, and more through a simple
 - 🔌 **Multiple Transports** - Support for TCP, QUIC, WebSocket, and WebRTC
 - 📡 **Protocol Support**:
     - Kademlia DHT for content and peer discovery
-    - GossipSub/FloodSub for pub/sub messaging (TBD)
+    - GossipSub/FloodSub for pub/sub messaging (WIP)
     - Rendezvous protocol for peer discovery
-    - Request/Response for custom protocols (TBD)
+    - Request/Response for custom protocols (WIP)
     - Identify protocol for peer information exchange
     - Relay protocol for NAT traversal
 - 🔐 **Access Control** - Built-in whitelist/blacklist functionality (default to blacklist at this time)
