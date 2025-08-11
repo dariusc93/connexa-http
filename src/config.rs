@@ -12,7 +12,11 @@ use connexa::prelude::{Multiaddr, PeerId};
 use serde::{Deserialize, Serialize};
 use std::net::IpAddr;
 use std::str::FromStr;
-use zeroize::Zeroizing;
+use base64::alphabet::STANDARD;
+use base64::Engine;
+use base64::engine::general_purpose::PAD;
+use base64::engine::GeneralPurpose;
+use connexa::prelude::identity::Keypair;
 
 #[derive(Serialize, Deserialize)]
 pub struct Config {
@@ -33,9 +37,16 @@ impl Default for Config {
             ],
             announce: vec![],
             bootstrap: vec![],
-            identity: Identity {
-                peer_id: PeerId::random(),
-                private_key: Zeroizing::new("".to_string()),
+            identity: {
+                let keypair = Keypair::generate_ed25519();
+                let peer_id = keypair.public().to_peer_id();
+                let engine = GeneralPurpose::new(&STANDARD, PAD);
+                let kp_bytes = keypair.to_protobuf_encoding().expect("should not fail encoding");
+                let base64_encoded = engine.encode(&kp_bytes);
+                Identity {
+                    peer_id,
+                    private_key: base64_encoded,
+                }
             },
         }
     }
@@ -51,7 +62,7 @@ impl Default for Http {
     fn default() -> Self {
         Self {
             port: 8080,
-            host: IpAddr::V4(std::net::Ipv4Addr::new(0, 0, 0, 0)),
+            host: IpAddr::V4(std::net::Ipv4Addr::new(127, 0, 0, 1)),
         }
     }
 }
@@ -59,7 +70,7 @@ impl Default for Http {
 #[derive(Serialize, Deserialize)]
 pub struct Identity {
     pub peer_id: PeerId,
-    pub private_key: Zeroizing<String>,
+    pub private_key: String,
 }
 
 #[derive(Serialize, Deserialize)]
