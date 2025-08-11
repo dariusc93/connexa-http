@@ -8,15 +8,15 @@ mod request_response;
 mod webrtc;
 mod websocket;
 
+use base64::Engine;
+use base64::alphabet::STANDARD;
+use base64::engine::GeneralPurpose;
+use base64::engine::general_purpose::PAD;
+use connexa::prelude::identity::Keypair;
 use connexa::prelude::{Multiaddr, PeerId};
 use serde::{Deserialize, Serialize};
 use std::net::IpAddr;
 use std::str::FromStr;
-use base64::alphabet::STANDARD;
-use base64::Engine;
-use base64::engine::general_purpose::PAD;
-use base64::engine::GeneralPurpose;
-use connexa::prelude::identity::Keypair;
 
 #[derive(Serialize, Deserialize)]
 pub struct Config {
@@ -41,7 +41,9 @@ impl Default for Config {
                 let keypair = Keypair::generate_ed25519();
                 let peer_id = keypair.public().to_peer_id();
                 let engine = GeneralPurpose::new(&STANDARD, PAD);
-                let kp_bytes = keypair.to_protobuf_encoding().expect("should not fail encoding");
+                let kp_bytes = keypair
+                    .to_protobuf_encoding()
+                    .expect("should not fail encoding");
                 let base64_encoded = engine.encode(&kp_bytes);
                 Identity {
                     peer_id,

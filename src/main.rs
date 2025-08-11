@@ -1,11 +1,11 @@
 mod config;
 mod routes;
 
-use std::net::{IpAddr, SocketAddr};
 use axum::Router;
 use axum::http::StatusCode;
 use clap::Parser;
 use connexa::prelude::{DefaultConnexaBuilder, Multiaddr, PeerId, Protocol};
+use std::net::{IpAddr, SocketAddr};
 use std::path::PathBuf;
 use tokio::net::TcpListener;
 
@@ -147,11 +147,19 @@ async fn main() -> std::io::Result<()> {
             continue;
         };
 
-        if let Err(e) = connexa.peer_store().add_address(peer_id, addr.clone()).await {
+        if let Err(e) = connexa
+            .peer_store()
+            .add_address(peer_id, addr.clone())
+            .await
+        {
             println!("failed to add bootstrap node {addr} to peer store: {e}");
         }
 
-        if let Err(e) = connexa.peer_store().add_address(peer_id, addr.clone()).await {
+        if let Err(e) = connexa
+            .peer_store()
+            .add_address(peer_id, addr.clone())
+            .await
+        {
             println!("failed to add bootstrap node {addr} to dht: {e}");
         }
     }
