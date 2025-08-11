@@ -5,9 +5,40 @@ use std::net::{IpAddr, SocketAddr};
 use axum::Router;
 use axum::http::StatusCode;
 use clap::Parser;
-use connexa::prelude::{DefaultConnexaBuilder, Multiaddr};
+use connexa::prelude::{DefaultConnexaBuilder, Multiaddr, PeerId, Protocol};
 use std::path::PathBuf;
 use tokio::net::TcpListener;
+
+const IPFS_BOOTSTRAP: &[(&str, &str)] = &[
+    (
+        "/ip4/104.131.131.82/tcp/4001",
+        "QmaCpDMGvV2BGHeYERUEnRQAwe3N8SzbUtfsmvsqQLuvuJ",
+    ),
+    (
+        "/ip4/104.131.131.82/udp/4001/quic-v1",
+        "QmaCpDMGvV2BGHeYERUEnRQAwe3N8SzbUtfsmvsqQLuvuJ",
+    ),
+    (
+        "/dnsaddr/bootstrap.libp2p.io",
+        "QmNnooDu7bfjPFoTZYxMNLWUQJyrVwtbZg5gBMjTezGAJN",
+    ),
+    (
+        "/dnsaddr/bootstrap.libp2p.io",
+        "QmQCU2EcMqAqQPR2i9bChDtGNJchTbq5TbXJJ16u19uLTa",
+    ),
+    (
+        "/dnsaddr/bootstrap.libp2p.io",
+        "QmbLHAnMoJPWSCR5Zhtx6BHJX9KiKNN6tpvbUcqanj75Nb",
+    ),
+    (
+        "/dnsaddr/bootstrap.libp2p.io",
+        "QmcZf59bWwK5XFi76CZX8cbJ4BhTzzA3gU1ZjYZcYW3dwt",
+    ),
+    (
+        "/dnsaddr/va1.bootstrap.libp2p.io",
+        "12D3KooWKnDdG3iXw9eTFijk3EWSunZcFi54Zka4wmtqtt6rPxc8",
+    ),
+];
 
 #[derive(Debug, Parser)]
 #[clap(name = "connexa-http")]
@@ -34,15 +65,22 @@ struct Opt {
     /// Bootstrap nodes
     #[clap(long)]
     bootstrap: Vec<Multiaddr>,
+
+    /// Use IPFS bootstrap
+    #[clap(long)]
+    ipfs_bootstrap: bool,
 }
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
-    // TODO: Construct connexa based on options provided from clap, prioritizing the config file over other options
+    let opt = Opt::parse();
+    // TODO: Construct connexa based on options provided from clap, prioritizing the config file over other cli options
 
     let connexa = DefaultConnexaBuilder::new_identity()
         .enable_quic()
         .enable_tcp()
+        .enable_webrtc()
+        .enable_secure_websocket()
         .with_request_response(vec![])
         .with_gossipsub()
         .with_kademlia()
@@ -58,13 +96,32 @@ async fn main() -> std::io::Result<()> {
         .with_dcutr()
         .build()?;
 
+    let peer_id = connexa.keypair().public().to_peer_id();
+
     connexa
         .swarm()
         .listen_on("/ip4/0.0.0.0/tcp/0".parse().unwrap())
         .await?;
     connexa
         .swarm()
+        .listen_on("/ip6/::/tcp/0".parse().unwrap())
+        .await?;
+    connexa
+        .swarm()
         .listen_on("/ip4/0.0.0.0/udp/0/quic-v1".parse().unwrap())
+        .await?;
+    connexa
+        .swarm()
+        .listen_on("/ip6/::/udp/0/quic-v1".parse().unwrap())
+        .await?;
+    // We will exclude a listening address for websocket for the time being
+    connexa
+        .swarm()
+        .listen_on("/ip4/0.0.0.0/udp/0/webrtc-direct".parse().unwrap())
+        .await?;
+    connexa
+        .swarm()
+        .listen_on("/ip6/::/udp/0/webrtc-direct".parse().unwrap())
         .await?;
 
     tokio::task::yield_now().await;
@@ -72,7 +129,31 @@ async fn main() -> std::io::Result<()> {
     let addrs = connexa.swarm().listening_addresses().await?;
 
     for addr in addrs {
+        let addr = addr.with_p2p(peer_id).unwrap();
         println!("Listening on: {}", addr);
+    }
+
+    if opt.ipfs_bootstrap {
+        for (addr, peer_id) in IPFS_BOOTSTRAP {
+            let peer_id: PeerId = peer_id.parse().expect("valid peer id");
+            let addr: Multiaddr = addr.parse().expect("valid addr");
+            connexa.dht().add_address(peer_id, addr).await?;
+        }
+    }
+
+    for addr in opt.bootstrap {
+        let Protocol::P2p(peer_id) = addr.iter().last().unwrap() else {
+            println!("bootstrap node {addr} missing peer id. Skipping...");
+            continue;
+        };
+
+        if let Err(e) = connexa.peer_store().add_address(peer_id, addr.clone()).await {
+            println!("failed to add bootstrap node {addr} to peer store: {e}");
+        }
+
+        if let Err(e) = connexa.peer_store().add_address(peer_id, addr.clone()).await {
+            println!("failed to add bootstrap node {addr} to dht: {e}");
+        }
     }
 
     let gossipsub_routes = Router::new()
