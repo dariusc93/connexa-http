@@ -2,7 +2,6 @@ mod config;
 mod routes;
 
 use axum::Router;
-use axum::http::StatusCode;
 use clap::Parser;
 use connexa::prelude::{DefaultConnexaBuilder, Multiaddr, PeerId, Protocol};
 use std::net::{IpAddr, SocketAddr};
@@ -165,17 +164,44 @@ async fn main() -> std::io::Result<()> {
     }
 
     let gossipsub_routes = Router::new()
-        .route("/subscribe", axum::routing::post(null))
-        .route("/topic/{name}", axum::routing::get(null))
-        .route("/topic/{name}/unsubscribe", axum::routing::delete(null))
-        .route("/topic/{name}/peers", axum::routing::get(null))
-        .route("/topic/{name}/publish", axum::routing::put(null));
+        .route(
+            "/subscribe",
+            axum::routing::post(routes::gossipsub::subscribe),
+        )
+        .route(
+            "/topic/{name}",
+            axum::routing::get(routes::gossipsub::topic_listener),
+        )
+        .route(
+            "/topic/{name}/unsubscribe",
+            axum::routing::delete(routes::gossipsub::unsubscribe),
+        )
+        .route(
+            "/topic/{name}/peers",
+            axum::routing::get(routes::gossipsub::peers),
+        )
+        .route(
+            "/topic/{name}/publish",
+            axum::routing::put(routes::gossipsub::publish),
+        );
 
     let floodsub_routes = Router::new()
-        .route("/subscribe", axum::routing::post(null))
-        .route("/topic/{name}", axum::routing::get(null))
-        .route("/topic/{name}/unsubscribe", axum::routing::delete(null))
-        .route("/topic/{name}/publish", axum::routing::put(null));
+        .route(
+            "/subscribe",
+            axum::routing::post(routes::floodsub::subscribe),
+        )
+        .route(
+            "/topic/{name}",
+            axum::routing::get(routes::floodsub::topic_listener),
+        )
+        .route(
+            "/topic/{name}/unsubscribe",
+            axum::routing::delete(routes::floodsub::unsubscribe),
+        )
+        .route(
+            "/topic/{name}/publish",
+            axum::routing::put(routes::floodsub::publish),
+        );
 
     let kad_routes = Router::new()
         .route("/", axum::routing::get(routes::kademlia::listener))
@@ -286,8 +312,4 @@ async fn main() -> std::io::Result<()> {
     axum::serve(listener, app).await?;
 
     Ok(())
-}
-
-async fn null() -> StatusCode {
-    StatusCode::OK
 }
