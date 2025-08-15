@@ -38,10 +38,9 @@ pub async fn remove(State(connexa): State<Connexa>, Json(param): Json<Param>) ->
 pub async fn list(State(connexa): State<Connexa>) -> Json<Value> {
     match connexa.blacklist().list().await {
         Ok(peers) => {
-            let peer_ids: Vec<String> = peers.into_iter().map(|p| p.to_string()).collect();
             Json(serde_json::json!({
                 "status": 200,
-                "peers": peer_ids,
+                "peers": peers,
             }))
         }
         Err(e) => {

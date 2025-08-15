@@ -132,10 +132,9 @@ pub async fn is_connected(
 pub async fn connected_peers(State(connexa): State<Connexa>) -> Json<Value> {
     match connexa.swarm().connected_peers().await {
         Ok(peers) => {
-            let peer_ids: Vec<String> = peers.into_iter().map(|p| p.to_string()).collect();
             Json(serde_json::json!({
                 "status": 200,
-                "peers": peer_ids,
+                "peers": peers,
             }))
         }
         Err(e) => {
@@ -151,10 +150,9 @@ pub async fn connected_peers(State(connexa): State<Connexa>) -> Json<Value> {
 pub async fn listening_addresses(State(connexa): State<Connexa>) -> Json<Value> {
     match connexa.swarm().listening_addresses().await {
         Ok(addresses) => {
-            let addrs: Vec<String> = addresses.into_iter().map(|a| a.to_string()).collect();
             Json(serde_json::json!({
                 "status": 200,
-                "addresses": addrs,
+                "addresses": addresses,
             }))
         }
         Err(e) => {
@@ -195,11 +193,9 @@ pub async fn listening_addresses(State(connexa): State<Connexa>) -> Json<Value> 
 pub async fn external_addresses(State(connexa): State<Connexa>) -> Json<Value> {
     match connexa.swarm().external_addresses().await {
         Ok(addresses) => {
-            let addrs: Vec<String> = addresses.into_iter().map(|a| a.to_string()).collect();
             Json(serde_json::json!({
                 "status": 200,
-                "external_addresses": addrs,
-                "count": addrs.len()
+                "external_addresses": addresses,
             }))
         }
         Err(e) => {
@@ -230,8 +226,8 @@ pub async fn add_peer_address(
         Ok(()) => Json(serde_json::json!({
             "status": 200,
             "message": "success",
-            "peer_id": param.peer_id.to_string(),
-            "address": param.address.to_string()
+            "peer_id": param.peer_id,
+            "address": param.address
         })),
         Err(e) => {
             let status = StatusCode::INTERNAL_SERVER_ERROR;
@@ -252,7 +248,7 @@ pub enum ConnectionListenerEvent {
 
 pub async fn connection_listener(
     State(connexa): State<Connexa>,
-) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
+) -> Sse<impl Stream<Item=Result<Event, Infallible>>> {
     let mut st = connexa
         .swarm()
         .listener()

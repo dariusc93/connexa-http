@@ -85,20 +85,9 @@ pub async fn list(State(connexa): State<Connexa>, Json(param): Json<Param>) -> J
         },
         None => match connexa.peer_store().list_all().await {
             Ok(peers) => {
-                let addrs: Vec<_> = peers
-                    .into_iter()
-                    .map(|(peer_id, list)| {
-                        let peer_id_str = peer_id.to_string();
-                        let list = list
-                            .into_iter()
-                            .map(|addr| addr.to_string())
-                            .collect::<Vec<String>>();
-                        (peer_id_str, list)
-                    })
-                    .collect();
                 Json(serde_json::json!({
                     "status": 200,
-                    "addresses": addrs,
+                    "addresses": peers,
                 }))
             }
             Err(e) => {

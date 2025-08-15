@@ -64,8 +64,9 @@ pub async fn discovery(State(connexa): State<Connexa>, Json(param): Json<Param>)
         .discovery(param.peer_id, param.namespace, param.ttl, None)
         .await
     {
-        Ok(_) => Json(serde_json::json!({
+        Ok((_, peers)) => Json(serde_json::json!({
             "status": 200,
+            "peers": peers,
         })),
         Err(e) => Json(serde_json::json!({
             "status": 500,

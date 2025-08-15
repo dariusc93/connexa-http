@@ -51,7 +51,7 @@ struct Opt {
     #[clap(long)]
     keypair_file: Option<PathBuf>,
 
-    /// Keypair encoded in base64.
+    /// Keypair encoded in base64. 
     /// Note that this option is not ideal to use in production as it would
     /// expose your keypair
     #[clap(long)]
