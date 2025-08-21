@@ -297,9 +297,9 @@ dependencies = [
 
 [[package]]
 name = "async-trait"
-version = "0.1.88"
+version = "0.1.89"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e539d3fca749fcee5236ab05e93a52867dd549cc157c8cb7f99595f3cedffdb5"
+checksum = "9035ad2d096bed7955a320ee7e2230574d28fd3c3a0f186cbea1ff3c7eed5dbb"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -663,9 +663,9 @@ dependencies = [
 
 [[package]]
 name = "connexa"
-version = "0.3.2"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0d5ddd0c7b4a631e11c34ddba351c4e07028a688d8f93c7efd65b5cf37005578"
+checksum = "de3d54fa71299dd7a6f50fcb7859aa731f4df1a3aff0a615b897174fb1e6f1d7"
 dependencies = [
  "async-rt",
  "async-trait",
@@ -673,6 +673,7 @@ dependencies = [
  "bytes",
  "either",
  "futures",
+ "futures-timeout",
  "futures-timer",
  "getrandom 0.2.16",
  "getrandom 0.3.3",
@@ -687,7 +688,7 @@ dependencies = [
  "pem",
  "pollable-map",
  "rand 0.8.5",
- "rcgen",
+ "rcgen 0.14.3",
  "rlimit",
  "send_wrapper 0.6.0",
  "serde",
@@ -2420,7 +2421,7 @@ dependencies = [
  "futures-rustls",
  "libp2p-core",
  "libp2p-identity",
- "rcgen",
+ "rcgen 0.13.2",
  "ring",
  "rustls",
  "rustls-webpki",
@@ -2461,7 +2462,7 @@ dependencies = [
  "libp2p-webrtc-utils",
  "multihash",
  "rand 0.8.5",
- "rcgen",
+ "rcgen 0.13.2",
  "stun",
  "thiserror 2.0.12",
  "tokio",
@@ -3419,6 +3420,20 @@ dependencies = [
  "rustls-pki-types",
  "time",
  "x509-parser 0.16.0",
+ "yasna",
+]
+
+[[package]]
+name = "rcgen"
+version = "0.14.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0068c5b3cab1d4e271e0bb6539c87563c43411cad90b057b15c79958fbeb41f7"
+dependencies = [
+ "pem",
+ "ring",
+ "rustls-pki-types",
+ "time",
+ "x509-parser 0.17.0",
  "yasna",
 ]
 
@@ -4588,7 +4603,7 @@ dependencies = [
  "pem",
  "portable-atomic",
  "rand 0.8.5",
- "rcgen",
+ "rcgen 0.13.2",
  "regex",
  "ring",
  "rtcp",
@@ -4654,7 +4669,7 @@ dependencies = [
  "portable-atomic",
  "rand 0.8.5",
  "rand_core 0.6.4",
- "rcgen",
+ "rcgen 0.13.2",
  "ring",
  "rustls",
  "sec1",
@@ -5239,6 +5254,7 @@ dependencies = [
  "lazy_static",
  "nom",
  "oid-registry 0.8.1",
+ "ring",
  "rusticata-macros",
  "thiserror 2.0.12",
  "time",
